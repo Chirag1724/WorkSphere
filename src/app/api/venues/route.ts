@@ -17,13 +17,16 @@ export async function GET(req: NextRequest) {
       wifi: searchParams.get("wifi"),
       outlets: searchParams.get("outlets"),
       quiet: searchParams.get("quiet"),
+      ergonomic: searchParams.get("ergonomic"),
+      outletDensity: searchParams.get("outletDensity"),
+      wifiSpeedBand: searchParams.get("wifiSpeedBand"),
     });
     
     if (!validation.success) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     
-    const { lat, lng, radius, category } = validation.data;
+    const { lat, lng, radius, category, wifi, outlets, quiet, ergonomic, outletDensity, wifiSpeedBand } = validation.data;
 
     // Simple bounding box search (for PostgreSQL without PostGIS)
     // Approximate: 1 degree ≈ 111km
@@ -41,8 +44,44 @@ export async function GET(req: NextRequest) {
       },
     };
 
-    if (category) {
+    if (category && category !== "all") {
       where.category = category;
+    }
+
+    if (wifi) {
+      where.wifiQuality = { gte: 3 };
+    }
+
+    if (outlets) {
+      where.hasOutlets = true;
+    }
+
+    if (quiet) {
+      where.noiseLevel = "quiet";
+    }
+
+    if (ergonomic) {
+      where.hasErgonomic = true;
+    }
+
+    if (outletDensity && outletDensity !== "none") {
+      if (outletDensity === "every_table") {
+        where.outletDensity = "every_table";
+      } else if (outletDensity === "some_tables") {
+        where.outletDensity = { in: ["every_table", "some_tables"] };
+      } else if (outletDensity === "wall_seats") {
+        where.outletDensity = { in: ["every_table", "some_tables", "wall_seats"] };
+      }
+    }
+
+    if (wifiSpeedBand && wifiSpeedBand !== "all") {
+      if (wifiSpeedBand === "basic") {
+        where.wifiSpeed = { gte: 10 };
+      } else if (wifiSpeedBand === "fast") {
+        where.wifiSpeed = { gte: 50 };
+      } else if (wifiSpeedBand === "ultra") {
+        where.wifiSpeed = { gte: 100 };
+      }
     }
 
     const venues = await prisma.venue.findMany({
@@ -82,7 +121,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
     
-    const { name, latitude, longitude, category, address, wifiQuality, hasOutlets, noiseLevel } = validation.data;
+    const { name, latitude, longitude, category, address, wifiQuality, hasOutlets, noiseLevel, hasErgonomic, outletDensity, wifiSpeed } = validation.data;
     const { placeId, rating } = body; // placeId and rating are additional fields
 
     // Validate placeId (required for upsert)
@@ -100,6 +139,9 @@ export async function POST(req: NextRequest) {
         wifiQuality,
         hasOutlets,
         noiseLevel,
+        hasErgonomic,
+        outletDensity,
+        wifiSpeed,
         crowdsourced: true,
       },
       create: {
@@ -113,6 +155,9 @@ export async function POST(req: NextRequest) {
         wifiQuality,
         hasOutlets: hasOutlets || false,
         noiseLevel,
+        hasErgonomic: hasErgonomic || false,
+        outletDensity: outletDensity || "none",
+        wifiSpeed: wifiSpeed || null,
         crowdsourced: true,
       },
     });
