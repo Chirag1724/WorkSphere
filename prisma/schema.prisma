@@ -1,9 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  extensions = [vector]
 }
 
 model User {
@@ -16,6 +18,7 @@ model User {
   ratings       VenueRating[]
   conversations Conversation[]
   bookings      Booking[]
+  memories      UserMemory[]
 }
 
 model Venue {
@@ -34,6 +37,8 @@ model Venue {
   outletDensity  String?       // every_table, some_tables, wall_seats, none
   wifiSpeed      Int?          // in Mbps
   crowdsourced   Boolean       @default(false)
+  requiresReview Boolean       @default(false)
+  imageUrl       String?
   googlePlaceId  String?       // Cached Google place_id (for photo lookup)
   photoReference String?       // Cached Google Places photo_reference
   createdAt      DateTime      @default(now())
@@ -123,4 +128,15 @@ enum BookingStatus {
   CONFIRMED
   PENDING
   CANCELLED
+}
+
+model UserMemory {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  content   String
+  embedding Unsupported("vector(1024)")?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
