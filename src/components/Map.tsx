@@ -18,6 +18,7 @@ import { MapMarker, MapRoute, MapView } from "@/types/map";
 
 // Import Leaflet Heatmap Plugin safely only on client-side
 if (typeof window !== "undefined") {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   require("leaflet.heat");
 }
 
