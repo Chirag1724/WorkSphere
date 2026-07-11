@@ -148,7 +148,7 @@ function AppPage() {
             setIsLoadingLocation(false);
           },
           async (error) => {
-            console.error("Geolocation error:", error);
+            console.warn("Geolocation error:", error);
             // Fallback to IP-based location API
             try {
               const response = await fetch("/api/location");
@@ -473,7 +473,6 @@ function AppPage() {
           md:flex flex-1 md:flex-[3] flex-col min-h-0 bg-white dark:bg-zinc-900
         `}>
           <ChatErrorBoundary>
-            <SyncStatusProvider>
               <EnhancedChatbot
                 roomId={sessionId}
                 onShowToast={setToast}
@@ -511,7 +510,6 @@ function AppPage() {
                   location ? { lat: location.latitude, lng: location.longitude } : undefined
                 }
               />
-            </SyncStatusProvider>
           </ChatErrorBoundary>
         </div>
       </div>

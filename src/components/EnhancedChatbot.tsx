@@ -14,8 +14,7 @@ import {
   trackVenueInteraction,
   trackFilterApplied,
   trackError,
-  recordSearchPattern,
-  recordAgentMetric,
+  trackAgentPerformance,
 } from "@/lib/analytics";
 import { saveFavoriteOffline } from "@/lib/offlineStorage";
 
@@ -521,7 +520,6 @@ export function EnhancedChatbot({ onMapUpdate, onOpenDetails, onBook, userLocati
 
     if (location) {
       trackSearch(userMessage, location, filters as Record<string, unknown>);
-      recordSearchPattern(userMessage);
     }
 
     try {
@@ -552,7 +550,7 @@ export function EnhancedChatbot({ onMapUpdate, onOpenDetails, onBook, userLocati
 
       if (data.agentSteps) {
         (data.agentSteps as AgentStep[]).forEach((step) => {
-          recordAgentMetric(step.agent, Date.now() - startTime, true);
+          trackAgentPerformance(step.agent, Date.now() - startTime, true);
         });
       }
 
