@@ -15,7 +15,6 @@ export async function GET(request: Request) {
   return NextResponse.json({ success: true, timestamp: new Date().toISOString() });
 }
 
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import nodemailer from "nodemailer";
 import twilio from "twilio";
