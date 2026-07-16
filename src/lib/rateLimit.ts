@@ -6,15 +6,10 @@
  */
 
 // ─── Upstash (production) ────────────────────────────────────────────────────
-const upstashLimiters = new Map<number, any>();
-
-interface RateLimitInfo {
-  count: number;
-  remaining: number;
-  resetTime: number;
-  isLimited: boolean;
-}
-const rateLimitInfoStore = new Map<string, RateLimitInfo>();
+type UpstashRatelimit = {
+  limit: (identifier: string) => Promise<{ success: boolean; remaining: number; reset: number }>;
+};
+const upstashLimiters = new Map<number, UpstashRatelimit>();
 
 function getUpstashRatelimit(limitPerMinute: number) {
   if (
@@ -114,21 +109,17 @@ export async function rateLimit(
   limit = 10,
 ): Promise<boolean> {
   let rl = upstashLimiters.get(limit);
+
   if (!rl) {
-    rl = getUpstashRatelimit(limit);
-    if (rl) {
+    const newRl = getUpstashRatelimit(limit);
+    if (newRl) {
+      rl = newRl;
       upstashLimiters.set(limit, rl);
     }
   }
 
   if (rl) {
-    const { success, remaining, reset } = await rl.limit(identifier);
-    rateLimitInfoStore.set(identifier, {
-      count: limit - remaining,
-      remaining,
-      resetTime: reset,
-      isLimited: !success,
-    });
+    const { success } = await rl.limit(identifier);
     return success;
   }
 
