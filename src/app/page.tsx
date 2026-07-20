@@ -19,19 +19,18 @@ import {
   FileText,
   BarChart3,
   ArrowUp,
-  MapPin,
-  Coffee,
-  LayoutGrid,
-  Shield,
 } from "lucide-react";
-import { UserButton, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import SiteFooter from "@/components/site-footer";
+import { TopNav } from "@/components/TopNav";
 import FAQAccordion from "@/components/ui/FAQAccordion";
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+
+  const { isSignedIn } = useUser();
 
   useEffect(() => {
     setIsVisible(true);
